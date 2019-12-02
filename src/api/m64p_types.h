@@ -265,6 +265,7 @@ typedef struct
    unsigned char disableextramem; /* 0 - No, 1 - Yes boolean for disabling 4MB expansion RAM pack */
    unsigned int countperop; /* Number of CPU cycles per instruction. */
    unsigned int sidmaduration; /* Default SI DMA duration */
+   unsigned int forcealignmentofpidma; /*Force alignment of PI DMA, needed for ROM hacks */
 } m64p_rom_settings;
 
 /* ----------------------------------------- */
