@@ -53,6 +53,8 @@ enum { DEFAULT_DISABLE_EXTRA_MEM = 0 };
 enum { DEFAULT_SI_DMA_DURATION = 0x900 };
 /* Force alignment of PI DMA */
 enum { DEFAULT_FORCE_ALIGNMENT_OF_PI_DMA = 0 };
+/* Count per scanline override */
+enum { DEFAULT_COUNT_PER_SCANLINE_OVERRIDE = 0 };
 
 static romdatabase_entry* ini_search_by_md5(md5_byte_t* md5);
 
@@ -190,6 +192,7 @@ m64p_error open_rom(const unsigned char* romimage, unsigned int size)
         ROM_SETTINGS.disableextramem = entry->disableextramem;
         ROM_SETTINGS.sidmaduration = entry->sidmaduration;
         ROM_SETTINGS.forcealignmentofpidma = entry->forcealignmentofpidma;
+        ROM_SETTINGS.countPerScanlineOverride = entry->countPerScanlineOverride;
         ROM_PARAMS.cheats = entry->cheats;
     }
     else
@@ -207,6 +210,7 @@ m64p_error open_rom(const unsigned char* romimage, unsigned int size)
         ROM_SETTINGS.disableextramem = DEFAULT_DISABLE_EXTRA_MEM;
         ROM_SETTINGS.sidmaduration = DEFAULT_SI_DMA_DURATION;
         ROM_SETTINGS.forcealignmentofpidma = DEFAULT_FORCE_ALIGNMENT_OF_PI_DMA;
+        ROM_SETTINGS.countPerScanlineOverride = DEFAULT_COUNT_PER_SCANLINE_OVERRIDE;
         ROM_PARAMS.cheats = NULL;
     }
 
@@ -377,8 +381,14 @@ static size_t romdatabase_resolve_round(void)
 
         if (!isset_bitmask(entry->entry.set_flags, ROMDATABASE_ENTRY_FORCEALIGNMENTOFPIDMA) &&
             isset_bitmask(ref->set_flags, ROMDATABASE_ENTRY_FORCEALIGNMENTOFPIDMA)) {
-            entry->entry.sidmaduration = ref->forcealignmentofpidma;
+            entry->entry.forcealignmentofpidma = ref->forcealignmentofpidma;
             entry->entry.set_flags |= ROMDATABASE_ENTRY_FORCEALIGNMENTOFPIDMA;
+        }
+
+        if (!isset_bitmask(entry->entry.set_flags, ROMDATABASE_ENTRY_COUNTPERSCANLINEOVERRIDE) &&
+            isset_bitmask(ref->set_flags, ROMDATABASE_ENTRY_COUNTPERSCANLINEOVERRIDE)) {
+            entry->entry.countPerScanlineOverride = ref->countPerScanlineOverride;
+            entry->entry.set_flags |= ROMDATABASE_ENTRY_COUNTPERSCANLINEOVERRIDE;
         }
 
         free(entry->entry.refmd5);
@@ -478,6 +488,7 @@ void romdatabase_open(void)
             search->entry.biopak = 0;
             search->entry.sidmaduration = DEFAULT_SI_DMA_DURATION;
             search->entry.forcealignmentofpidma = 1; //If ROM is in database, force alignment by default
+            search->entry.countPerScanlineOverride = DEFAULT_COUNT_PER_SCANLINE_OVERRIDE;
             search->entry.set_flags = ROMDATABASE_ENTRY_NONE;
 
             search->next_entry = NULL;
@@ -678,6 +689,11 @@ void romdatabase_open(void)
             {
                 search->entry.forcealignmentofpidma = atoi(l.value);
                 search->entry.set_flags |= ROMDATABASE_ENTRY_FORCEALIGNMENTOFPIDMA;
+            }
+            else if(!strcmp(l.name, "CountPerScanlineOverride"))
+            {
+                search->entry.countPerScanlineOverride = atoi(l.value);
+                search->entry.set_flags |= ROMDATABASE_ENTRY_COUNTPERSCANLINEOVERRIDE;
             }
             else
             {
